@@ -22,7 +22,8 @@
 #include "espconn.h"
 #include "os_type.h"
 
-#define ESP8266_TCP_GET_REQUEST_STRING "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n"
+#define ESP8266_TCP_DNS_MAX_TRIES		5
+#define ESP8266_TCP_GET_REQUEST_STRING "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n"
 
 //CUSTOM VARIABLE STRUCTURES/////////////////////////////
 enum
@@ -37,10 +38,10 @@ enum
 
 //FUNCTION PROTOTYPES/////////////////////////////////////
 //CONFIGURATION FUNCTIONS
-void ICACHE_FLASH_ATTR ESP8266_TCP_Initialize(char* hostname,
-													ip_addr_t host_ip,
+void ICACHE_FLASH_ATTR ESP8266_TCP_Initialize(const char* hostname,
+													const char* host_ip,
 													uint16_t host_port,
-													char* host_path,
+													const char* host_path,
 													uint32_t tcp_connection_interval_ms);
 void ICACHE_FLASH_ATTR ESP8266_TCP_Intialize_Request_Buffer(uint32_t buffer_size);
 void ICACHE_FLASH_ATTR ESP8266_TCP_SetDnsServer(char num_dns, ip_addr_t* dns);
@@ -53,7 +54,7 @@ const char* ICACHE_FLASH_ATTR ESP8266_TCP_GetSourcePath(void);
 uint16_t ICACHE_FLASH_ATTR ESP8266_TCP_GetSourcePort(void);
 
 //CONTROL FUNCTIONS
-void ICACHE_FLASH_ATTR ESP8266_TCP_ResolveHostName(void);
+void ICACHE_FLASH_ATTR  ESP8266_TCP_ResolveHostName(void (*user_dns_cb_fn)(ip_addr_t*));
 void ICACHE_FLASH_ATTR ESP8266_TCP_StartDataAcqusition(void);
 void ICACHE_FLASH_ATTR ESP8266_TCP_StopDataAcquisition(void);
 
