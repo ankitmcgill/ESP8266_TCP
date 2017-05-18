@@ -63,6 +63,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_SetDnsServer(char num_dns, ip_addr_t* dns);
 void ICACHE_FLASH_ATTR ESP8266_TCP_SetCallbackFunctions(void (*tcp_con_cb)(void*),
 															void (*tcp_discon_cb)(void*),
 															void (tcp_send_cb)(void*),
+															void (tcp_recv_cb)(void*, char*, unsigned short),
 															void (user_data_ready_cb)(ESP8266_TCP_EXTRACTED_DATA*, ESP8266_TCP_STATE));
 
 //GET PARAMETERS FUNCTIONS
@@ -78,12 +79,12 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_StartDataAcqusition(void);
 void ICACHE_FLASH_ATTR ESP8266_TCP_StopDataAcquisition(void);
 
 //INTERNAL CALLBACK FUNCTIONS
-void _esp8266_tcp_dns_timer_cb(void* arg);
-void _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg);
-void _esp8266_tcp_connect_cb(void* arg);
-void _esp8266_tcp_disconnect_cb(void* arg);
-void _esp8266_tcp_send_cb(void* arg);
-void _esp8266_tcp_receive_cb(void* arg, char* pusrdata, unsigned short length);
-void _esp8266_tcp_data_acquisition_timer_cb(void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_dns_timer_cb(void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_connect_cb(void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_disconnect_cb(void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_send_cb(void* arg);
+void ICACHE_FLASH_ATTR _esp8266_tcp_receive_cb(void* arg, char* pusrdata, unsigned short length);
+void ICACHE_FLASH_ATTR _esp8266_tcp_data_acquisition_timer_cb(void* arg);
 //END FUNCTION PROTOTYPES/////////////////////////////////
 #endif

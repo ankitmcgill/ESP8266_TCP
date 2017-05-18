@@ -40,7 +40,7 @@ static void (*_esp8266_tcp_tcp_conn_cb)(void*);
 static void (*_esp8266_tcp_tcp_discon_cb)(void*);
 static void (*_esp8266_tcp_tcp_send_cb)(void*);
 static void (*_esp8266_tcp_tcp_recv_cb)(void*, char*, unsigned short);
-static void (*_esp8266_tcp_user_data_ready_cb)(ESP8266_TCP_EXTRACTED_DATA*, ESP8266_TCP_STATE);
+static void (*_esp8266_tcp_tcp_user_data_ready_cb)(ESP8266_TCP_EXTRACTED_DATA*, ESP8266_TCP_STATE);
 
 //USER DATA RELATED
 static ESP8266_TCP_USER_DATA_CONTAINER* _esp8266_user_data_container;
@@ -106,6 +106,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_SetDnsServer(char num_dns, ip_addr_t* dns)
 void ICACHE_FLASH_ATTR ESP8266_TCP_SetCallbackFunctions(void (*tcp_con_cb)(void*),
 															void (*tcp_discon_cb)(void*),
 															void (tcp_send_cb)(void*),
+															void (tcp_recv_cb)(void*, char*, unsigned short),
 															void (user_data_ready_cb)(ESP8266_TCP_EXTRACTED_DATA*, ESP8266_TCP_STATE))
 {
 	//HOOK FOR THE USER TO PROVIDE CALLBACK FUNCTIONS FOR
@@ -131,7 +132,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_SetCallbackFunctions(void (*tcp_con_cb)(void*
 	}
 	*/
 	//TCP DATA READY USER CB
-	_esp8266_tcp_user_data_ready_cb = user_data_ready_cb;
+	_esp8266_tcp_tcp_user_data_ready_cb = user_data_ready_cb;
 
 	//TCP CONNECT CB
 	_esp8266_tcp_tcp_conn_cb = tcp_con_cb;
@@ -143,7 +144,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_SetCallbackFunctions(void (*tcp_con_cb)(void*
 	_esp8266_tcp_tcp_send_cb = tcp_send_cb;
 
 	//TCP RECEIVE CB
-	_esp8266_tcp_tcp_recv_cb = _esp8266_tcp_receive_cb;
+	_esp8266_tcp_tcp_recv_cb = tcp_recv_cb;
 }
 
 uint32_t ICACHE_FLASH_ATTR ESP8266_TCP_GetDataAcquisitionInterval(void)
@@ -197,7 +198,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_ResolveHostName(void (*user_dns_cb_fn)(ip_add
 		struct espconn temp;
 		_esp8266_tcp_resolved_host_ip.addr = 0;
 		espconn_gethostbyname(&temp, _esp8266_tcp_host_name, &_esp8266_tcp_resolved_host_ip, _esp8266_tcp_dns_found_cb);
-		os_timer_setfn(&_esp8266_tcp_dns_timer, (os_timer_func_t*)_esp8266_tcp_dns_timer_cb, &_esp8266_tcp_espconn);
+		os_timer_setfn(&_esp8266_tcp_dns_timer, (os_timer_func_t*)_esp8266_tcp_dns_timer_cb, &temp);
 		os_timer_arm(&_esp8266_tcp_dns_timer, 1000, 0);
 		return;
 	}
@@ -258,7 +259,7 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_StopDataAcquisition(void)
 	os_timer_disarm(&_esp8266_tcp_timer);
 }
 
-void _esp8266_tcp_dns_timer_cb(void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_dns_timer_cb(void* arg)
 {
 	//ESP8266 DNS CHECK TIMER CALLBACK FUNCTIONS
 	//TIME PERIOD = 1 SEC
@@ -290,7 +291,7 @@ void _esp8266_tcp_dns_timer_cb(void* arg)
 	os_timer_arm(&_esp8266_tcp_dns_timer, 1000, 0);
 }
 
-void _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg)
 {
 	//ESP8266 TCP DNS RESOLVING DONE CALLBACK FUNCTION
 
@@ -320,6 +321,7 @@ void _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg)
 																*((uint8_t*)&_esp8266_tcp_resolved_host_ip.addr + 3));
 
 	_esp8266_tcp_state = ESP8266_TCP_STATE_DNS_RESOLVED;
+
 	//CALL USER PROVIDED DNS CB FUNCTION
 	if(*_esp8266_tcp_dns_cb_function != NULL)
 	{
@@ -327,7 +329,7 @@ void _esp8266_tcp_dns_found_cb(const char* name, ip_addr_t* ipAddr, void* arg)
 	}
 }
 
-void _esp8266_tcp_connect_cb(void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_connect_cb(void* arg)
 {
 	//TCP CONNECT CALLBACK
 
@@ -357,7 +359,7 @@ void _esp8266_tcp_connect_cb(void* arg)
 	}
 }
 
-void _esp8266_tcp_disconnect_cb(void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_disconnect_cb(void* arg)
 {
 	//TCP DISCONNECT CALLBACK
 
@@ -370,7 +372,7 @@ void _esp8266_tcp_disconnect_cb(void* arg)
 	}
 }
 
-void _esp8266_tcp_send_cb(void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_send_cb(void* arg)
 {
 	//TCP SENT DATA SUCCESSFULLY CALLBACK
 
@@ -383,12 +385,11 @@ void _esp8266_tcp_send_cb(void* arg)
 	}
 }
 
-void _esp8266_tcp_receive_cb(void* arg, char* pusrdata, unsigned short length)
+void ICACHE_FLASH_ATTR _esp8266_tcp_receive_cb(void* arg, char* pusrdata, unsigned short length)
 {
 	//TCP RECEIVED DATA CALLBACK
 
 	os_printf("ESP8266 TCP : TCP DATA RECEIVED\n");
-	os_printf("-------\n%s--------\n", pusrdata);
 
 	//PROCESS INCOMING TCP DATA
 
@@ -450,7 +451,7 @@ void _esp8266_tcp_receive_cb(void* arg, char* pusrdata, unsigned short length)
 	}
 }
 
-void _esp8266_tcp_data_acquisition_timer_cb(void* arg)
+void ICACHE_FLASH_ATTR _esp8266_tcp_data_acquisition_timer_cb(void* arg)
 {
 	//ESP8266 DATA ACQUISITION TIMER CALLABCK
 	os_printf("ESP8266 TCP : STARTING DATA ACQUISITION CYCLE = %d\n", _esp8266_tcp_data_acquisition_count++);
