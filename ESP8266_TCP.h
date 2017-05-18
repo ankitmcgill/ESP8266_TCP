@@ -22,6 +22,7 @@
 #include "espconn.h"
 #include "os_type.h"
 
+#define ESP8266_TCP_DEBUG_ON
 #define ESP8266_TCP_DNS_MAX_TRIES		5
 #define ESP8266_TCP_GET_REQUEST_STRING "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n"
 
