@@ -21,7 +21,6 @@
 #include "espconn.h"
 #include "os_type.h"
 
-//#define ESP8266_TCP_GET_DEBUG_ON
 #define ESP8266_TCP_GET_DNS_MAX_TRIES		5
 #define ESP8266_TCP_GET_GET_REQUEST_STRING "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n"
 
@@ -53,6 +52,7 @@ typedef struct
 
 //FUNCTION PROTOTYPES/////////////////////////////////////
 //CONFIGURATION FUNCTIONS
+void ICACHE_FLASH_ATTR_ESP8266_TCP_GET_SetDebug(uint8_t debug_on);
 void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Initialize(const char* hostname,
 													const char* host_ip,
 													uint16_t host_port,

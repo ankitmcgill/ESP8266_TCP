@@ -10,6 +10,9 @@
 #include "ESP8266_TCP_GET.h"
 
 //LOCAL LIBRARY VARIABLES/////////////////////////////////////
+//DEBUG RELATRED
+static uint8_t _esp8266_tcp_get_debug;
+
 //TCP RELATED
 static struct espconn _esp8266_tcp_get_espconn;
 static struct _esp_tcp _esp8266_tcp_get_user_tcp;
@@ -46,6 +49,13 @@ static void (*_esp8266_tcp_get_tcp_user_data_ready_cb)(ESP8266_TCP_GET_USER_DATA
 static ESP8266_TCP_GET_USER_DATA_CONTAINER* _esp8266_user_data_container;
 //END LOCAL LIBRARY VARIABLES/////////////////////////////////
 
+void ICACHE_FLASH_ATTR_ESP8266_TCP_GET_SetDebug(uint8_t debug_on)
+{
+    //SET DEBUG PRINTF ON(1) OR OFF(0)
+    
+    _esp8266_tcp_get_debug = debug_on;
+}
+
 void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Initialize(const char* hostname,
 													const char* host_ip,
 													uint16_t host_port,
@@ -68,6 +78,9 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Initialize(const char* hostname,
 	_esp8266_tcp_get_data_acquisition_count = 0;
 	_esp8266_tcp_get_dns_retry_count = 0;
 
+    //SET DEBUG ON
+    _esp8266_tcp_get_debug = 1;
+    
 	_esp8266_tcp_get_state = ESP8266_TCP_GET_STATE_OK;
 }
 
@@ -81,9 +94,10 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Intialize_Request_Buffer(uint32_t buffer_
 	os_sprintf(_esp8266_tcp_get_get_request_buffer, ESP8266_TCP_GET_GET_REQUEST_STRING,
 			_esp8266_tcp_get_host_path, _esp8266_tcp_get_host_name);
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("GET STRING : %s\n", _esp8266_tcp_get_get_request_buffer);
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("GET STRING : %s\n", _esp8266_tcp_get_get_request_buffer);
+	}
 }
 
 void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Initialize_UserDataContainer(ESP8266_TCP_GET_USER_DATA_CONTAINER* container)
@@ -233,9 +247,10 @@ uint16_t ICACHE_FLASH_ATTR ESP8266_TCP_GET_GetSourcePort(void)
 void ICACHE_FLASH_ATTR ESP8266_TCP_GET_StartDataAcqusition(void)
 {
 	//START TCP DATA AQUISITION CYCLE
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : DATA AQUISITION CYCLE START\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : DATA AQUISITION CYCLE START\n");
+	}
 
 	_esp8266_tcp_get_data_acquisition_count = 0;
 
@@ -251,17 +266,19 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_GET_StartDataAcqusition(void)
 	espconn_regist_connectcb(&_esp8266_tcp_get_espconn, _esp8266_tcp_get_connect_cb);
 	espconn_regist_disconcb(&_esp8266_tcp_get_espconn, _esp8266_tcp_get_disconnect_cb);
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : SETUP TCP OBJECT. STARTING ACQUISITION TIMER WITH INTERVAL = %dms\n", _esp8266_tcp_get_timer_interval);
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : SETUP TCP OBJECT. STARTING ACQUISITION TIMER WITH INTERVAL = %dms\n", _esp8266_tcp_get_timer_interval);
+	}
 
 	//START THE ACQUISITION TIMER
 	os_timer_setfn(&_esp8266_tcp_get_timer, (os_timer_func_t*)_esp8266_tcp_get_data_acquisition_timer_cb, NULL);
 	os_timer_arm(&_esp8266_tcp_get_timer, _esp8266_tcp_get_timer_interval, 1);
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : STARTING DATA ACQUISITION CYCLE = %d\n", _esp8266_tcp_get_data_acquisition_count++);
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : STARTING DATA ACQUISITION CYCLE = %d\n", _esp8266_tcp_get_data_acquisition_count++);
+	}
 
 	espconn_connect(&_esp8266_tcp_get_espconn);
 }
@@ -270,9 +287,10 @@ void ICACHE_FLASH_ATTR ESP8266_TCP_GET_StopDataAcquisition(void)
 {
 	//STOP TCP DATA AQUISITION CYCLE
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("data acquisition stopped at cycle %d\n", _esp8266_tcp_get_data_acquisition_count);
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("data acquisition stopped at cycle %d\n", _esp8266_tcp_get_data_acquisition_count);
+	}
 
 	_esp8266_tcp_get_data_acquisition_count = 0;
 
@@ -295,9 +313,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_dns_timer_cb(void* arg)
 		//STOP THE DNS TIMER
 		os_timer_disarm(&_esp8266_tcp_get_dns_timer);
 
-		#ifdef ESP8266_TCP_GET_DEBUG_ON
-		os_printf("DNS Max retry exceeded. DNS unsuccessfull\n");
-		#endif
+		if(_esp8266_tcp_get_debug)
+		{
+		    os_printf("DNS Max retry exceeded. DNS unsuccessfull\n");
+		}
 
 		_esp8266_tcp_get_state = ESP8266_TCP_GET_STATE_ERROR;
 		//CALL USER DNS CB FUNCTION WILL NULL ARGUMENT)
@@ -308,9 +327,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_dns_timer_cb(void* arg)
 		return;
 	}
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("DNS resolve timer expired. Starting another timer of 1 second...\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("DNS resolve timer expired. Starting another timer of 1 second...\n");
+	}
 
 	struct espconn *pespconn = arg;
 	espconn_gethostbyname(pespconn, _esp8266_tcp_get_host_name, &_esp8266_tcp_get_resolved_host_ip, _esp8266_tcp_get_dns_found_cb);
@@ -327,9 +347,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_dns_found_cb(const char* name, ip_addr_t
 	if(ipAddr == NULL)
 	{
 		//HOST NAME COULD NOT BE RESOLVED
-		#ifdef ESP8266_TCP_GET_DEBUG_ON
-		os_printf("hostname : %s, could not be resolved\n", _esp8266_tcp_get_host_name);
-		#endif
+		if(_esp8266_tcp_get_debug)
+		{
+		    os_printf("hostname : %s, could not be resolved\n", _esp8266_tcp_get_host_name);
+		}
 
 		_esp8266_tcp_get_state = ESP8266_TCP_GET_STATE_ERROR;
 		//CALL USER PROVIDED DNS CB FUNCTION WITH NULL PARAMETER
@@ -342,13 +363,14 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_dns_found_cb(const char* name, ip_addr_t
 
 	//DNS GOT IP
 	_esp8266_tcp_get_resolved_host_ip.addr = ipAddr->addr;
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("hostname : %s, resolved. IP = %d.%d.%d.%d\n", _esp8266_tcp_get_host_name,
-																*((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr),
-																*((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 1),
-																*((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 2),
-																*((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 3));
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("hostname : %s, resolved. IP = %d.%d.%d.%d\n", _esp8266_tcp_get_host_name,
+																    *((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr),
+																    *((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 1),
+																    *((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 2),
+																    *((uint8_t*)&_esp8266_tcp_get_resolved_host_ip.addr + 3));
+	}
 
 	_esp8266_tcp_get_state = ESP8266_TCP_GET_STATE_DNS_RESOLVED;
 
@@ -363,9 +385,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_connect_cb(void* arg)
 {
 	//TCP CONNECT CALLBACK
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : TCP CONNECTED\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : TCP CONNECTED\n");
+	}
 
 	//GET THE NEW USER TCP CONNECTION
 	struct espconn *pespconn = arg;
@@ -395,9 +418,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_disconnect_cb(void* arg)
 {
 	//TCP DISCONNECT CALLBACK
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : TCP DISCONNECTED\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : TCP DISCONNECTED\n");
+	}
 
 	//CALL USER CALLBACK IF NOT NULL
 	if(_esp8266_tcp_get_tcp_discon_cb != NULL)
@@ -410,9 +434,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_send_cb(void* arg)
 {
 	//TCP SENT DATA SUCCESSFULLY CALLBACK
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : TCP DATA SENT\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : TCP DATA SENT\n");
+	}
 
 	//CALL USER CALLBACK IF NOT NULL
 	if(_esp8266_tcp_get_tcp_send_cb != NULL)
@@ -425,9 +450,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, un
 {
 	//TCP RECEIVED DATA CALLBACK
 
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : TCP DATA RECEIVED\n");
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : TCP DATA RECEIVED\n");
+	}
 
 	//PROCESS INCOMING TCP DATA
 
@@ -471,9 +497,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, un
 
 			//FREE THE DATA BUFFER
 			os_free(data);
-			#ifdef ESP8266_TCP_GET_DEBUG_ON
-			os_printf("data found = %s\n", (_esp8266_user_data_container->tcp_reply_extracted_data[counter]).extracted_data);
-			#endif
+			if(_esp8266_tcp_get_debug)
+			{
+			    os_printf("data found = %s\n", (_esp8266_user_data_container->tcp_reply_extracted_data[counter]).extracted_data);
+			}
 		}
 		counter++;
 	}
@@ -501,9 +528,10 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, un
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_data_acquisition_timer_cb(void* arg)
 {
 	//ESP8266 DATA ACQUISITION TIMER CALLABCK
-	#ifdef ESP8266_TCP_GET_DEBUG_ON
-	os_printf("ESP8266 TCP : STARTING DATA ACQUISITION CYCLE = %d\n", _esp8266_tcp_get_data_acquisition_count++);
-	#endif
+	if(_esp8266_tcp_get_debug)
+	{
+	    os_printf("ESP8266 TCP : STARTING DATA ACQUISITION CYCLE = %d\n", _esp8266_tcp_get_data_acquisition_count++);
+	}
 
 	//INITIATE A NEW TCP CONNECTION
 	espconn_connect(&_esp8266_tcp_get_espconn);
