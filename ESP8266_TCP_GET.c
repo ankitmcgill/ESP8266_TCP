@@ -521,8 +521,6 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, un
 		//CALL USER SPECIFIED DATA READY CALLBACK
 		(*_esp8266_tcp_get_tcp_user_data_ready_cb)(_esp8266_user_data_container);
 	}
-
-
 }
 
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_data_acquisition_timer_cb(void* arg)
