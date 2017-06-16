@@ -22,6 +22,7 @@
 #include "os_type.h"
 
 #define ESP8266_TCP_GET_DNS_MAX_TRIES		5
+#define ESP8266_TCP_GET_REPLY_TIMEOUT_MS	5000
 #define ESP8266_TCP_GET_GET_REQUEST_STRING "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n"
 
 //CUSTOM VARIABLE STRUCTURES/////////////////////////////
@@ -86,6 +87,7 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_connect_cb(void* arg);
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_disconnect_cb(void* arg);
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_send_cb(void* arg);
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, unsigned short length);
+void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_timeout_cb(void);
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_data_acquisition_timer_cb(void* arg);
 //END FUNCTION PROTOTYPES/////////////////////////////////
 #endif

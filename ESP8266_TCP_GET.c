@@ -28,6 +28,7 @@ static uint16_t _esp8266_tcp_get_host_port;
 static volatile os_timer_t _esp8266_tcp_get_dns_timer;
 static volatile os_timer_t _esp8266_tcp_get_timer;
 static uint32_t _esp8266_tcp_get_timer_interval;
+static volatile os_timer_t _esp8266_tcp_reply_timeout_timer;
 
 //COUNTERS
 static uint16_t _esp8266_tcp_get_dns_retry_count;
@@ -439,6 +440,14 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_send_cb(void* arg)
 	    os_printf("ESP8266 TCP : TCP DATA SENT\n");
 	}
 
+	//SET AND THE TCP GET REPLY TIMEOUT TIMER
+	os_timer_setfn(&_esp8266_tcp_reply_timeout_timer, (os_timer_func_t*)_esp8266_tcp_get_receive_timeout_cb, NULL);
+	os_timer_arm(&_esp8266_tcp_reply_timeout_timer, ESP8266_TCP_GET_REPLY_TIMEOUT_MS, 0);
+	if(_esp8266_tcp_get_debug)
+	{
+		os_printf("ESP8266 TCP : Started 5 second reply timeout timer\n");
+	}
+
 	//CALL USER CALLBACK IF NOT NULL
 	if(_esp8266_tcp_get_tcp_send_cb != NULL)
 	{
@@ -518,9 +527,32 @@ void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_cb(void* arg, char* pusrdata, un
 		//DISCONNECT TCP CONNECTION
 		espconn_disconnect(&_esp8266_tcp_get_espconn);
 
+		//STOP TCP GET REPLY TIMEOUT TIMER
+		os_timer_disarm(&_esp8266_tcp_reply_timeout_timer);
+		if(_esp8266_tcp_get_debug)
+		{
+			os_printf("ESP8266 TCP : TCP get reply timeout timer stopped\n");
+		}
+
 		//CALL USER SPECIFIED DATA READY CALLBACK
 		(*_esp8266_tcp_get_tcp_user_data_ready_cb)(_esp8266_user_data_container);
 	}
+}
+
+void ICACHE_FLASH_ATTR _esp8266_tcp_get_receive_timeout_cb(void)
+{
+	//CALLBACK FOR TCP GET REPLY TIMEOUT TIMER
+	//IF CALLED => TCP GET REPLY NOT RECEIVED IN SET TIME
+	if(_esp8266_tcp_get_debug)
+	{
+		os_printf("ESP8266 TCP : TCP get reply timeout !\n");
+	}
+
+	//DISCONNECT THE TCP CONNECTION TO END THE CURRENT TRANSACTION
+	espconn_disconnect(&_esp8266_tcp_get_espconn);
+
+	////CALL USER SPECIFIED DATA READY CALLBACK WITH NULL ARGUMENT
+	(*_esp8266_tcp_get_tcp_user_data_ready_cb)(NULL);
 }
 
 void ICACHE_FLASH_ATTR _esp8266_tcp_get_data_acquisition_timer_cb(void* arg)
