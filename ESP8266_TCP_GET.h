@@ -53,7 +53,7 @@ typedef struct
 
 //FUNCTION PROTOTYPES/////////////////////////////////////
 //CONFIGURATION FUNCTIONS
-void ICACHE_FLASH_ATTR_ESP8266_TCP_GET_SetDebug(uint8_t debug_on);
+void ICACHE_FLASH_ATTR ESP8266_TCP_GET_SetDebug(uint8_t debug_on);
 void ICACHE_FLASH_ATTR ESP8266_TCP_GET_Initialize(const char* hostname,
 													const char* host_ip,
 													uint16_t host_port,

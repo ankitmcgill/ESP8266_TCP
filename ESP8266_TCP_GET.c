@@ -50,7 +50,7 @@ static void (*_esp8266_tcp_get_tcp_user_data_ready_cb)(ESP8266_TCP_GET_USER_DATA
 static ESP8266_TCP_GET_USER_DATA_CONTAINER* _esp8266_user_data_container;
 //END LOCAL LIBRARY VARIABLES/////////////////////////////////
 
-void ICACHE_FLASH_ATTR_ESP8266_TCP_GET_SetDebug(uint8_t debug_on)
+void ICACHE_FLASH_ATTR ESP8266_TCP_GET_SetDebug(uint8_t debug_on)
 {
     //SET DEBUG PRINTF ON(1) OR OFF(0)
     
