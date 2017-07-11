@@ -39,13 +39,13 @@ typedef struct
 	char extracted_data_start_match_string[50];
 	uint8_t extracted_data_offset_from_match_string;
 	uint8_t extracted_data_char_len;
-	char extracted_data_terminating_char;
+	char extracted_data_terminating_char; //SHOULD BE NULL TERMINATED
 	char extracted_data[50];
 }ESP8266_TCP_GET_EXTRACTED_DATA;
 
 typedef struct
 {
-	char tcp_reply_packet_terminating_chars[10];
+	char tcp_reply_packet_terminating_chars[10]; //SHOULD BE NULL TERMINATED
 	uint8_t tcp_reply_extracted_data_count;
 	ESP8266_TCP_GET_EXTRACTED_DATA* tcp_reply_extracted_data;
 }ESP8266_TCP_GET_USER_DATA_CONTAINER;
